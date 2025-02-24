@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class Initializer {
 
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     public CommandLineRunner init() {
@@ -39,13 +41,13 @@ public class Initializer {
                 User admin = User.builder()
                         .email("admin@elharche.com")
                         .name("admin")
-                        .password("admin")
+                        .password(passwordEncoder.encode("admin"))
                         .roles(List.of(adminRole, userRole))
                         .build();
                 User user = User.builder()
                         .email("user@elharche.com")
                         .name("user")
-                        .password("user")
+                        .password(passwordEncoder.encode("user"))
                         .roles(List.of(userRole))
                         .build();
                 userRepo.save(admin);

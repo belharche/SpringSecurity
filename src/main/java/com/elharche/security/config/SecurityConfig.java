@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
+                .httpBasic(httpBasic -> {})
                 .build();
     }
 
