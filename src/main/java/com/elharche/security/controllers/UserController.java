@@ -1,6 +1,6 @@
 package com.elharche.security.controllers;
 
-import com.elharche.security.models.User;
+import com.elharche.security.entities.User;
 import com.elharche.security.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

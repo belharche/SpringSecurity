@@ -1,11 +1,10 @@
 package com.elharche.security.services;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,10 +16,16 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
+
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Value("${jwt.expirationDate}")
     private long expirationDate;
+
+    @Value("${jwt.refreshExpirationDate}")
+    private long refreshExpirationDate;
 
     @Value("${jwt.secretKey}")
     private String secretKey;
@@ -73,5 +78,37 @@ public class JwtService {
 
     private Date extractExpiration(String authToken) {
         return extractClaim(authToken, Claims::getExpiration);
+    }
+
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshExpirationDate))
+                .id(userDetails.getUsername())
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        try {
+            Claims claims = extractAllClaims(refreshToken);
+            return !claims.getExpiration().before(new Date()); // Ensure it's not expired
+        } catch (ExpiredJwtException e) {
+            return false; // Refresh token is expired
+        } catch (Exception e) {
+            return false; // Invalid token
+        }
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        if (validateRefreshToken(refreshToken)) {
+            String username = extractEmail(refreshToken);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+            return generateToken(userDetails); // Generate a new access token
+        } else {
+            throw new JwtException("Invalid or expired refresh token.");
+        }
     }
 }

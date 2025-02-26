@@ -1,6 +1,6 @@
 package com.elharche.security.services;
 
-import com.elharche.security.models.User;
+import com.elharche.security.entities.User;
 import com.elharche.security.repos.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

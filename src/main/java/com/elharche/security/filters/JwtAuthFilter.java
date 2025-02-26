@@ -2,6 +2,7 @@ package com.elharche.security.filters;
 
 import com.elharche.security.services.CustomUserDetailsService;
 import com.elharche.security.services.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,17 +40,43 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         authToken = authHeader.substring(7);
-        email = jwtService.extractEmail(authToken);
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+//        email = jwtService.extractEmail(authToken);
+//        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+//
+//        if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+//            if (jwtService.validateToken(authToken, userDetails)) {
+//                UsernamePasswordAuthenticationToken authentication =
+//                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+//
+//                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+//                SecurityContextHolder.getContext().setAuthentication(authentication);
+//            }
+//            else {
+//                // If the access token is expired, attempt to refresh with refresh token
+//                String refreshToken = request.getHeader("Refresh-Token");
+//                if (refreshToken != null && jwtService.validateRefreshToken(refreshToken)) {
+//                    String newAccessToken = jwtService.refreshAccessToken(refreshToken);
+//                    response.setHeader("Authorization", "Bearer " + newAccessToken);
+//                }
+//            }
+//        }
 
-        if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtService.validateToken(authToken, userDetails)) {
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        try {
+            email = jwtService.extractEmail(authToken);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (jwtService.validateToken(authToken, userDetails)) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Access token expired. Please refresh.");
+            return;
         }
 
         filterChain.doFilter(request, response);

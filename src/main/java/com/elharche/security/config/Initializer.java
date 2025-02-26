@@ -1,7 +1,7 @@
 package com.elharche.security.config;
 
-import com.elharche.security.models.Role;
-import com.elharche.security.models.User;
+import com.elharche.security.entities.Role;
+import com.elharche.security.entities.User;
 import com.elharche.security.repos.RoleRepo;
 import com.elharche.security.repos.UserRepo;
 import lombok.RequiredArgsConstructor;

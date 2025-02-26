@@ -1,4 +1,4 @@
-package com.elharche.security.model;
+package com.elharche.security.models;
 
 import lombok.Builder;
 import lombok.Getter;

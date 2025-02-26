@@ -1,6 +1,7 @@
 package com.elharche.security.services;
 
-import com.elharche.security.model.AuthRequest;
+import com.elharche.security.models.AuthRequest;
+import com.elharche.security.models.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,16 +17,18 @@ public class AuthService {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-    public String login(AuthRequest authRequest) {
+    public AuthResponse.AuthResponseBuilder login(AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
         );
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(
-                    userDetailsService.loadUserByUsername(authRequest.getEmail())
-            );
+            String accessToken = jwtService.generateToken(userDetailsService.loadUserByUsername(authRequest.getEmail()));
+            String refreshToken = jwtService.generateRefreshToken(userDetailsService.loadUserByUsername(authRequest.getEmail()));
+            return AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken);
         }
 
-        return  "Not Authenticated";
+        return AuthResponse.builder();
     }
 }

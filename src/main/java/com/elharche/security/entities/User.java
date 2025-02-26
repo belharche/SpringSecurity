@@ -1,4 +1,4 @@
-package com.elharche.security.models;
+package com.elharche.security.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
